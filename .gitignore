@@ -1,0 +1,13 @@
+DodgeDanger.xcodeproj/xcuserdata
+DodgeDanger.xcodeproj/project.xcworkspace/xcuserdata
+.DS_Store
+win/Debug
+win/Release
+win/x64
+win/dinput.pdb
+win/.vs
+*.sdf
+*.suo
+#*.vcxproj.user
+*.aps
+*.opensdf
