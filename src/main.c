@@ -461,14 +461,25 @@ static void handleWindowEvent(ZGWindowEvent event, void *context)
 
 static void destroyGame(AppContext *appContext)
 {
-    free(appContext->game);
-    appContext->game = NULL;
+    if (appContext->game != NULL)
+    {
+        free(appContext->game->cubes);
+        free(appContext->game);
+        appContext->game = NULL;
+    }
     
     ZGAppSetAllowsScreenIdling(true);
 }
 
 static void createNewGame(AppContext *appContext)
 {
+    if (appContext->game != NULL)
+    {
+        free(appContext->game->cubes);
+        free(appContext->game);
+        appContext->game = NULL;
+    }
+    
     appContext->game = calloc(1, sizeof(Game));
     appContext->game->playerSpeed = PLAYER_INITIAL_SPEED;
     appContext->game->renderInstruction = true;
