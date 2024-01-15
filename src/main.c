@@ -75,10 +75,9 @@ typedef struct
     bool renderInstruction;
 } Game;
 
-static Game *gGame;
-
 typedef struct
 {
+    Game *game;
     Renderer renderer;
     
     BufferArrayObject cubeVertexArrayObject;
@@ -103,7 +102,7 @@ typedef struct
 static void drawScene(Renderer *renderer, void *context)
 {
     AppContext *appContext = context;
-    Game *game = gGame;
+    Game *game = appContext->game;
     
     if (game == NULL)
     {
@@ -330,7 +329,7 @@ static void generateCubePositions(Game *game, uint32_t startingIndex)
 
 static void animate(double timeDelta, AppContext *appContext)
 {
-    Game *game = gGame;
+    Game *game = appContext->game;
     if (game == NULL || game->playerLost || game->paused)
     {
         return;
@@ -410,7 +409,7 @@ static void animate(double timeDelta, AppContext *appContext)
     
     if (!foundAliveCube)
     {
-        generateCubePositions(gGame, 0);
+        generateCubePositions(game, 0);
     }
 }
 
@@ -433,7 +432,7 @@ static void appSuspendedHandler(void *context)
 static void handleWindowEvent(ZGWindowEvent event, void *context)
 {
     AppContext *appContext = context;
-    Game *game = gGame;
+    Game *game = appContext->game;
     
     switch (event.type)
     {
@@ -462,21 +461,21 @@ static void handleWindowEvent(ZGWindowEvent event, void *context)
 
 static void destroyGame(AppContext *appContext)
 {
-    free(gGame);
-    gGame = NULL;
+    free(appContext->game);
+    appContext->game = NULL;
     
     ZGAppSetAllowsScreenIdling(true);
 }
 
 static void createNewGame(AppContext *appContext)
 {
-    gGame = calloc(1, sizeof(*gGame));
-    gGame->playerSpeed = PLAYER_INITIAL_SPEED;
-    gGame->renderInstruction = true;
+    appContext->game = calloc(1, sizeof(Game));
+    appContext->game->playerSpeed = PLAYER_INITIAL_SPEED;
+    appContext->game->renderInstruction = true;
     
-    gGame->cubes = calloc(MAX_CUBE_COUNT, sizeof(*gGame->cubes));
+    appContext->game->cubes = calloc(MAX_CUBE_COUNT, sizeof(appContext->game->cubes[0]));
     
-    generateCubePositions(gGame, 1);
+    generateCubePositions(appContext->game, 1);
     
     ZGAppSetAllowsScreenIdling(false);
 }
@@ -489,7 +488,7 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
     {
         case ZGKeyboardEventTypeKeyDown:
         {
-            Game *game = gGame;
+            Game *game = appContext->game;
             if (game == NULL)
             {
                 switch (event.keyCode)
@@ -593,7 +592,7 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
         }
         case ZGKeyboardEventTypeKeyUp:
         {
-            Game *game = gGame;
+            Game *game = appContext->game;
             if (game != NULL)
             {
                 switch (event.keyCode)
@@ -619,7 +618,7 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
 static void pollEventHandler(void *context, void *systemEvent)
 {
     AppContext *appContext = context;
-    Game *game = gGame;
+    Game *game = appContext->game;
     
     uint16_t gamepadEventsCount = 0;
     GamepadEvent *gamepadEvents = pollGamepadEvents(appContext->gamepadManager, systemEvent, &gamepadEventsCount);
@@ -853,7 +852,7 @@ static ZGWindow *appLaunchedHandler(void *context)
     rendererOptions.windowEventHandler = handleWindowEvent;
     rendererOptions.windowEventContext = appContext;
     rendererOptions.keyboardEventHandler = handleKeyboardEvent;
-    rendererOptions.keyboardEventContext = renderer;
+    rendererOptions.keyboardEventContext = appContext;
 
     createRenderer(renderer, rendererOptions);
     
@@ -981,8 +980,7 @@ static ZGWindow *appLaunchedHandler(void *context)
 
 int main(int argc, char *argv[])
 {
-    AppContext appContext;
-    memset(&appContext, 0, sizeof(appContext));
+    static AppContext appContext;
 
     ZGAppHandlers appHandlers = {.launchedHandler = appLaunchedHandler, .terminatedHandler = appTerminatedHandler, .runLoopHandler = runLoopHandler, .pollEventHandler = pollEventHandler, .suspendedHandler = appSuspendedHandler};
     return ZGAppInit(argc, argv, &appHandlers, &appContext);
