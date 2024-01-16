@@ -14,18 +14,18 @@ typedef struct
 	int height;
 } TextRendering;
 
-#define MAX_TEXT_RENDERING_COUNT 256
-
 static int gTextRenderingCount = 0;
+static int gTextRenderingCacheMaxCount;
 static TextRendering *gTextRenderings;
 
 static BufferArrayObject gFontVertexAndTextureBufferObject;
 static BufferObject gFontIndicesBufferObject;
 
-void initText(Renderer *renderer)
+void initText(Renderer *renderer, int textRenderingCacheCount)
 {
-	gTextRenderings = calloc(MAX_TEXT_RENDERING_COUNT, sizeof(*gTextRenderings));
-	
+	gTextRenderings = calloc(textRenderingCacheCount, sizeof(*gTextRenderings));
+    gTextRenderingCacheMaxCount = textRenderingCacheCount;
+    
 	const ZGFloat verticesAndTextureCoordinates[] =
 	{
 		// vertices
@@ -129,7 +129,7 @@ void drawStringf(Renderer *renderer, mat4_t modelViewMatrix, color4_t color, ZGF
 int cacheString(Renderer *renderer, const char *string)
 {
 	int cachedIndex = -1;
-	int renderingCount = gTextRenderingCount < MAX_TEXT_RENDERING_COUNT ? gTextRenderingCount : MAX_TEXT_RENDERING_COUNT;
+	int renderingCount = gTextRenderingCount < gTextRenderingCacheMaxCount ? gTextRenderingCount : gTextRenderingCacheMaxCount;
 	for (int i = 0; i < renderingCount; i++)
 	{
 		if (strncmp(string, gTextRenderings[i].text, 256) == 0)
@@ -144,9 +144,9 @@ int cacheString(Renderer *renderer, const char *string)
 		char *newText = calloc(MAX_TEXT_LENGTH, 1);
 		if (newText != NULL)
 		{
-			// If we run past MAX_TEXT_RENDERING_COUNT, re-cycle through our old text renderings
+			// If we run past gTextRenderingCacheMaxCount, re-cycle through our old text renderings
 			// and replace those
-			int insertionIndex = gTextRenderingCount % MAX_TEXT_RENDERING_COUNT;
+			int insertionIndex = gTextRenderingCount % gTextRenderingCacheMaxCount;
 			
 			if (gTextRenderings[insertionIndex].text != NULL)
 			{

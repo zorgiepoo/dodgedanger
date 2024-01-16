@@ -33,6 +33,8 @@
 #define FONT_SYSTEM_NAME "Helvetica"
 #define FONT_POINT_SIZE 144
 
+#define TEXT_RENDERING_CACHE_COUNT 32
+
 #define WINDOW_TITLE ""
 
 #define MAX_CUBE_COUNT 1024
@@ -984,7 +986,7 @@ static ZGWindow *appLaunchedHandler(void *context)
     }
     
     initFontWithName(FONT_SYSTEM_NAME, FONT_POINT_SIZE);
-    initText(renderer);
+    initText(renderer, TEXT_RENDERING_CACHE_COUNT);
     
     return renderer->window;
 }

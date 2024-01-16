@@ -7,7 +7,7 @@
 #define SUPPORT_DEPRECATED_DRAW_STRING_APIS 0
 
 // Requires Font subsystem to be initialized first
-void initText(Renderer *renderer);
+void initText(Renderer *renderer, int textRenderingCacheCount);
 
 #if SUPPORT_DEPRECATED_DRAW_STRING_APIS
 // Deprecated
