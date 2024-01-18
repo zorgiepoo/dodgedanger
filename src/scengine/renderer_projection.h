@@ -9,7 +9,7 @@ extern "C" {
 #include "platforms.h"
 
 #define PROJECTION_FOV_ANGLE 45.0f // in degrees
-#define PROJECTION_NEAR_VIEW_DISTANCE 0.0f
+#define PROJECTION_NEAR_VIEW_DISTANCE 0.01f
 #define PROJECTION_FAR_VIEW_DISTANCE 10000.0f
 
 ZGFloat computeProjectionAspectRatio(Renderer *renderer);

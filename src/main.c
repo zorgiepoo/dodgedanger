@@ -30,7 +30,7 @@
 #define ANIMATION_TIMER_INTERVAL 0.01666 // in seconds
 #define MAX_ITERATIONS (25 * ANIMATION_TIMER_INTERVAL)
 
-#define FONT_SYSTEM_NAME "Helvetica"
+#define FONT_SYSTEM_NAME "Times New Roman"
 #define FONT_POINT_SIZE 144
 
 #define TEXT_RENDERING_CACHE_COUNT 32
@@ -49,6 +49,8 @@
 
 #define HIGH_SCORE_USER_DEFAULTS_KEY "high_score"
 #define FULLSCREEN_USER_DEFAULTS_KEY "fullscreen"
+#define WINDOW_WIDTH_USER_DEFAULTS_KEY "window_width"
+#define WINDOW_HEIGHT_USER_DEFAULTS_KEY "window_height"
 #define USER_DEFAULTS_NAME "dodgedanger"
 
 typedef struct
@@ -362,7 +364,7 @@ static void animate(double timeDelta, AppContext *appContext)
         deltaX = 0.0f;
     }
     
-    vec3_t deltaVector = v3_muls(v3_norm(vec3(deltaX, 0.0f, -1.0f)), timeDelta * game->playerSpeed);
+    vec3_t deltaVector = v3_muls(v3_norm(vec3(deltaX, 0.0f, -1.0f)), (ZGFloat)(timeDelta * game->playerSpeed));
     game->playerPosition = v3_add(game->playerPosition, deltaVector);
     
     vec3_t playerPosition = game->playerPosition;
@@ -423,6 +425,8 @@ static void appTerminatedHandler(void *context)
     
     writeDefaultIntKey(userDefaults, HIGH_SCORE_USER_DEFAULTS_KEY, (int)appContext->highScore);
     writeDefaultIntKey(userDefaults, FULLSCREEN_USER_DEFAULTS_KEY, (int)appContext->renderer.fullscreen);
+    writeDefaultIntKey(userDefaults, WINDOW_WIDTH_USER_DEFAULTS_KEY, (int)appContext->renderer.windowWidth);
+    writeDefaultIntKey(userDefaults, WINDOW_HEIGHT_USER_DEFAULTS_KEY, (int)appContext->renderer.windowHeight);
     
     closeDefaults(userDefaults);
 }
@@ -515,7 +519,7 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
                         {
                             if (!appContext->playOptionSelected)
                             {
-                                ZGQuit();
+                                ZGSendQuitEvent();
                             }
                             else
                             {
@@ -657,7 +661,7 @@ static void pollEventHandler(void *context, void *systemEvent)
                         {
                             if (!appContext->playOptionSelected)
                             {
-                                ZGQuit();
+                                ZGSendQuitEvent();
                             }
                             else
                             {
@@ -842,6 +846,8 @@ static ZGWindow *appLaunchedHandler(void *context)
 
     appContext->highScore = (uint32_t)readDefaultIntKey(userDefaults, HIGH_SCORE_USER_DEFAULTS_KEY, 0);
     bool fullscreen = readDefaultBoolKey(userDefaults, FULLSCREEN_USER_DEFAULTS_KEY, false);
+    int windowWidth = readDefaultIntKey(userDefaults, WINDOW_WIDTH_USER_DEFAULTS_KEY, 800);
+    int windowHeight = readDefaultIntKey(userDefaults, WINDOW_HEIGHT_USER_DEFAULTS_KEY, 500);
     
     closeDefaults(userDefaults);
     
@@ -856,8 +862,8 @@ static ZGWindow *appLaunchedHandler(void *context)
     RendererCreateOptions rendererOptions = { 0 };
     
     rendererOptions.windowTitle = WINDOW_TITLE;
-    rendererOptions.windowWidth = 800;
-    rendererOptions.windowHeight = 500;
+    rendererOptions.windowWidth = windowWidth;
+    rendererOptions.windowHeight = windowHeight;
     rendererOptions.fullscreen = fullscreen;
     rendererOptions.vsync = true;
     rendererOptions.fsaa = true;
