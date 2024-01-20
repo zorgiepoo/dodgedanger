@@ -706,9 +706,14 @@ static void pollEventHandler(void *context, void *systemEvent)
                     case GAMEPAD_BUTTON_BACK:
                         if (game != NULL)
                         {
-                            if (!game->paused)
+                            if (game->playerLost)
                             {
                                 destroyGame(appContext);
+                            }
+                            else if (!game->paused)
+                            {
+                                game->paused = true;
+                                ZGAppSetAllowsScreenIdling(true);
                             }
                             else
                             {
