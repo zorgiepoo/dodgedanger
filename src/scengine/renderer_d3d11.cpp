@@ -51,8 +51,7 @@ typedef struct
 
 extern "C" static void updateViewport_d3d11(Renderer *renderer, int32_t windowWidth, int32_t windowHeight)
 {
-	renderer->drawableWidth = windowWidth;
-	renderer->drawableHeight = windowHeight;
+	ZGGetDrawableSize(renderer->window, &renderer->drawableWidth, &renderer->drawableHeight);
 
 	float aspectRatio = computeProjectionAspectRatio(renderer);
 	if (aspectRatio <= 0.001f)

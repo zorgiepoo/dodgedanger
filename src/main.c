@@ -462,6 +462,11 @@ static void handleWindowEvent(ZGWindowEvent event, void *context)
             appContext->needsToDrawScene = false;
             appContext->lastRunloopTime = 0;
             break;
+#if PLATFORM_WINDOWS
+        case ZGWindowEventDeviceConnected:
+            pollNewGamepads(appContext->gamepadManager);
+            break;
+#endif
     }
 }
 

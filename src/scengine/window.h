@@ -42,6 +42,9 @@ bool ZGWindowHasFocus(ZGWindow *window);
 #if PLATFORM_WINDOWS
 void ZGSetWindowMinimumSize(ZGWindow *window, int32_t minWidth, int32_t minHeight);
 void ZGShowWindow(ZGWindow* window);
+
+// I should make a version for Linux too
+void ZGGetDrawableSize(ZGWindow* windowRef, int32_t* width, int32_t* height);
 #endif
 
 void ZGGetWindowSize(ZGWindow *window, int32_t *width, int32_t *height);

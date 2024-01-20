@@ -5,6 +5,7 @@
 
 #include <Windows.h>
 #include <Dbt.h>
+#include <ShellScalingApi.h>
 
 #if __has_include("resource.h")
 #define WIN_ICON_AVAILABLE 1
@@ -14,6 +15,8 @@
 #endif
 
 #define SC_WINDOW_CLASS_NAME "SC_WINDOW_CLASS"
+
+static bool ZGGetWindowSizeForHandle(HWND handle, int32_t* width, int32_t* height);
 
 typedef struct
 {
@@ -30,6 +33,11 @@ typedef struct
 
 	bool minimized;
 } WindowContext;
+
+static float ZGScaleFactorForDpi(UINT dpi)
+{
+	return (float)dpi / USER_DEFAULT_SCREEN_DPI;
+}
 
 LRESULT CALLBACK windowCallback(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -62,12 +70,13 @@ LRESULT CALLBACK windowCallback(HWND handle, UINT message, WPARAM wParam, LPARAM
 			// Ignore this event
 			if (width > 0 && height > 0)
 			{
-				RECT clientRect;
-				if (GetClientRect(handle, &clientRect))
+				int32_t windowWidth;
+				int32_t windowHeight;
+				if (ZGGetWindowSizeForHandle(handle, &windowWidth, &windowHeight))
 				{
 					ZGWindowEvent windowEvent = { 0 };
-					windowEvent.width = (int32_t)clientRect.right;
-					windowEvent.height = (int32_t)clientRect.bottom;
+					windowEvent.width = windowWidth;
+					windowEvent.height = windowHeight;
 					windowEvent.type = ZGWindowEventTypeResize;
 
 					windowContext->windowEventHandler(windowEvent, windowContext->windowEventHandlerContext);
@@ -211,6 +220,9 @@ LRESULT CALLBACK windowCallback(HWND handle, UINT message, WPARAM wParam, LPARAM
 
 ZGWindow* ZGCreateWindow(const char* windowTitle, int32_t windowWidth, int32_t windowHeight, bool* fullscreenFlag)
 {
+	// This may not be necessary and fail if it's already set, but making the call in case
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 	HINSTANCE appInstance = GetModuleHandle(NULL);
 
 	static WNDCLASSEX windowClass;
@@ -235,22 +247,38 @@ ZGWindow* ZGCreateWindow(const char* windowTitle, int32_t windowWidth, int32_t w
 		createdWindowClass = true;
 	}
 
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	RECT screenRect = { 0 };
+	screenRect.right = screenWidth;
+	screenRect.bottom = screenHeight;
+	HMONITOR monitor = MonitorFromRect(&screenRect, MONITOR_DEFAULTTONEAREST);
+
+	UINT monitorDpi;
+	UINT unusedDpi;
+	HRESULT monitorDpiResult = GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &monitorDpi, &unusedDpi);
+	if (FAILED(monitorDpiResult))
+	{
+		monitorDpi = USER_DEFAULT_SCREEN_DPI;
+	}
+
 	DWORD windowStyle = WS_OVERLAPPEDWINDOW;
 
+	float scaleFactor = ZGScaleFactorForDpi(monitorDpi);
+
 	RECT windowRect = { 0 };
-	windowRect.right = windowWidth;
-	windowRect.bottom = windowHeight;
-	if (!AdjustWindowRectEx(&windowRect, windowStyle, FALSE, 0))
+	windowRect.right = (LONG)(windowWidth * scaleFactor);
+	windowRect.bottom = (LONG)(windowHeight * scaleFactor);
+	// Not sure if it makes any difference to use AdjustWindowRect vs AdjustWindowRectExForDpi when using same dpi as monitor
+	if (!AdjustWindowRectExForDpi(&windowRect, windowStyle, FALSE, 0, monitorDpi))
 	{
-		fprintf(stderr, "Error: failed toAdjustWindowRect(): %d\n", GetLastError());
+		fprintf(stderr, "Error: failed to AdjustWindowRectExForDpi(): %d\n", GetLastError());
 		return NULL;
 	}
 
 	int adjustedWindowWidth = windowRect.right - windowRect.left;
 	int adjustedWindowHeight = windowRect.bottom - windowRect.top;
-
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 	int centerX = (int)((float)screenWidth / 2.0f - (float)adjustedWindowWidth / 2.0f);
 	int centerY = (int)((float)screenHeight / 2.0f - (float)adjustedWindowHeight / 2.0f);
@@ -327,23 +355,55 @@ void ZGSetWindowMinimumSize(ZGWindow* windowRef, int32_t minWidth, int32_t minHe
 	HWND handle = windowRef;
 	WindowContext* windowContext = (WindowContext*)GetWindowLongPtr(handle, GWLP_USERDATA);
 
-	windowContext->minWidth = minWidth;
-	windowContext->minHeight = minHeight;
+	UINT windowDpi = GetDpiForWindow(handle);
+	float scalingFactor = ZGScaleFactorForDpi(windowDpi);
+
+	windowContext->minWidth = (uint32_t)(minWidth * scalingFactor);
+	windowContext->minHeight = (uint32_t)(minHeight * scalingFactor);
 }
 
-void ZGGetWindowSize(ZGWindow* windowRef, int32_t* width, int32_t* height)
+void ZGGetDrawableSize(ZGWindow* windowRef, int32_t* width, int32_t* height)
 {
 	HWND handle = windowRef;
 	RECT clientRect;
 	if (GetClientRect(handle, &clientRect))
 	{
-		*width = (int32_t)clientRect.right;
-		*height = (int32_t)clientRect.bottom;
+		int32_t drawableWidth = (int32_t)clientRect.right;
+		int32_t drawableHeight = (int32_t)clientRect.bottom;
+
+		*width = drawableWidth;
+		*height = drawableHeight;
+	}
+	else
+	{
+		fprintf(stderr, "Error: failed to get window drawable size: %d\n", GetLastError());
+	}
+}
+
+static bool ZGGetWindowSizeForHandle(HWND handle, int32_t* width, int32_t* height)
+{
+	RECT clientRect;
+	if (GetClientRect(handle, &clientRect))
+	{
+		int32_t drawableWidth = (int32_t)clientRect.right;
+		int32_t drawableHeight = (int32_t)clientRect.bottom;
+
+		UINT windowDpi = GetDpiForWindow(handle);
+		float scalingFactor = ZGScaleFactorForDpi(windowDpi);
+
+		*width = (int32_t)(drawableWidth / scalingFactor);
+		*height = (int32_t)(drawableHeight / scalingFactor);
 	}
 	else
 	{
 		fprintf(stderr, "Error: failed to get window size: %d\n", GetLastError());
 	}
+}
+
+void ZGGetWindowSize(ZGWindow* windowRef, int32_t* width, int32_t* height)
+{
+	HWND handle = windowRef;
+	ZGGetWindowSizeForHandle(handle, width, height);
 }
 
 void* ZGWindowHandle(ZGWindow* windowRef)
