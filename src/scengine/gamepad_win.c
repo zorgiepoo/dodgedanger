@@ -36,7 +36,11 @@ GamepadManager* initGamepadManager(const char* databasePath, GamepadCallback add
 		if (XInputGetState(instanceID, &state) == ERROR_SUCCESS)
 		{
 			gamepadManager->gamepads[instanceID].connected = true;
-			gamepadManager->addedCallback(instanceID, gamepadManager->context);
+
+			if (gamepadManager->addedCallback != NULL)
+			{
+				gamepadManager->addedCallback(instanceID, gamepadManager->context);
+			}
 		}
 		else
 		{
@@ -57,7 +61,11 @@ void pollNewGamepads(GamepadManager* gamepadManager)
 			if (XInputGetState(instanceID, &state) == ERROR_SUCCESS)
 			{
 				gamepadManager->gamepads[instanceID].connected = true;
-				gamepadManager->addedCallback(instanceID, gamepadManager->context);
+
+				if (gamepadManager->addedCallback != NULL)
+				{
+					gamepadManager->addedCallback(instanceID, gamepadManager->context);
+				}
 			}
 		}
 	}
@@ -110,7 +118,10 @@ GamepadEvent* pollGamepadEvents(GamepadManager* gamepadManager, const void* syst
 			DWORD stateResult = XInputGetState(instanceID, &newState);
 			if (stateResult == ERROR_DEVICE_NOT_CONNECTED)
 			{
-				gamepadManager->removalCallback(instanceID, gamepadManager->context);
+				if (gamepadManager->removalCallback != NULL)
+				{
+					gamepadManager->removalCallback(instanceID, gamepadManager->context);
+				}
 				memset(&gamepadManager->gamepads[instanceID], 0, sizeof(gamepadManager->gamepads[instanceID]));
 			}
 			else if (stateResult == ERROR_SUCCESS && newState.dwPacketNumber > gamepadManager->gamepads[instanceID].lastState.dwPacketNumber)
