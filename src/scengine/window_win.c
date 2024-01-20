@@ -86,6 +86,27 @@ LRESULT CALLBACK windowCallback(HWND handle, UINT message, WPARAM wParam, LPARAM
 			}
 		}
 	} break;
+	case WM_DPICHANGED: {
+		RECT* const newWindowRect = (RECT*)lParam;
+		if (SetWindowPos(handle, NULL, newWindowRect->left, newWindowRect->top, newWindowRect->right - newWindowRect->left, newWindowRect->bottom - newWindowRect->top, SWP_NOZORDER | SWP_NOACTIVATE))
+		{
+			WindowContext* windowContext = (WindowContext*)GetWindowLongPtr(handle, GWLP_USERDATA);
+			if (windowContext != NULL && windowContext->windowEventHandler != NULL)
+			{
+				UINT dpi = HIWORD(wParam);
+				float scaleFactor = ZGScaleFactorForDpi(dpi);
+
+				ZGWindowEvent windowEvent = { 0 };
+				windowEvent.width = (int32_t)((newWindowRect->right - newWindowRect->left) / scaleFactor);
+				windowEvent.height = (int32_t)((newWindowRect->bottom - newWindowRect->top) / scaleFactor);
+				windowEvent.type = ZGWindowEventTypeResize;
+
+				windowContext->windowEventHandler(windowEvent, windowContext->windowEventHandlerContext);
+
+				handledMessage = true;
+			}
+		}
+	} break;
 	case WM_ACTIVATEAPP: {
 		WindowContext* windowContext = (WindowContext*)GetWindowLongPtr(handle, GWLP_USERDATA);
 
