@@ -13,6 +13,11 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 
+#include "position-pixel.h"
+#include "position-vertex.h"
+#include "texture-position-vertex.h"
+#include "texture-position-pixel.h"
+
 #define DEPTH_FORMAT DXGI_FORMAT_D24_UNORM_S8_UINT
 
 using namespace DirectX;
@@ -194,62 +199,16 @@ extern "C" static void updateViewport_d3d11(Renderer *renderer, int32_t windowWi
 	renderer->d3d11DepthStencilBuffer = depthStencilBuffer;
 }
 
-static bool readFileBytes(const char *filename, void **bytesOutput, SIZE_T *lengthOutput)
-{
-	FILE *file = fopen(filename, "rb");
-	if (file == nullptr)
-	{
-		fprintf(stderr, "Error: failed to read file: %s\n", filename);
-		return false;
-	}
-
-	fseek(file, 0, SEEK_END);
-	SIZE_T length = (SIZE_T)ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	void *bytes = malloc(length);
-	if (bytes == nullptr)
-	{
-		fprintf(stderr, "Error: failed to allocate bytes for malloc in readFileBytes() for %s\n", filename);
-		fclose(file);
-		return false;
-	}
-
-	if (fread(bytes, length, 1, file) < 1)
-	{
-		fprintf(stderr, "Error: failed to fread file in readFileBytes() for %s\n", filename);
-
-		free(bytes);
-		fclose(file);
-		return false;
-	}
-
-	fclose(file);
-
-	*bytesOutput = bytes;
-	*lengthOutput = length;
-
-	return true;
-}
-
-static bool createShader(Renderer *renderer, Shader_d3d11 *shader, const char *vertexShaderName, const char *pixelShaderName, bool textured)
+static bool createShader(Renderer *renderer, Shader_d3d11 *shader, const void *vertexShaderBytes, size_t vertexShaderLength, const void *pixelShaderBytes, size_t pixelShaderLength, bool textured)
 {
 	ID3D11Device *device = (ID3D11Device *)renderer->d3d11Device;
-
-	void *vertexShaderBytes;
-	SIZE_T vertexShaderLength;
-	if (!readFileBytes(vertexShaderName, &vertexShaderBytes, &vertexShaderLength))
-	{
-		return false;
-	}
 
 	ID3D11VertexShader *vertexShader = nullptr;
 	HRESULT vertexShaderResult = device->CreateVertexShader(vertexShaderBytes, vertexShaderLength, nullptr, &vertexShader);
 
 	if (FAILED(vertexShaderResult))
 	{
-		free(vertexShaderBytes);
-		fprintf(stderr, "Error: failed to create vertex shader with error %d from %s\n", vertexShaderResult, vertexShaderName);
+		fprintf(stderr, "Error: failed to create vertex shader with error %d (textured: %d)\n", vertexShaderResult, textured);
 		return false;
 	}
 
@@ -277,21 +236,10 @@ static bool createShader(Renderer *renderer, Shader_d3d11 *shader, const char *v
 
 	ID3D11InputLayout *vertexInputLayout = nullptr;
 	HRESULT createVertexInputLayoutResult = device->CreateInputLayout(vertexInputLayoutDescription, textured ? 2 : 1, vertexShaderBytes, vertexShaderLength, &vertexInputLayout);
-	
-	free(vertexShaderBytes);
 
 	if (FAILED(createVertexInputLayoutResult))
 	{
-		fprintf(stderr, "Failed to create vertex input layout with error %d for %s\n", createVertexInputLayoutResult, vertexShaderName);
-		vertexShader->Release();
-		return false;
-	}
-
-	void *pixelShaderBytes;
-	SIZE_T pixelShaderLength;
-	if (!readFileBytes(pixelShaderName, &pixelShaderBytes, &pixelShaderLength))
-	{
-		vertexInputLayout->Release();
+		fprintf(stderr, "Failed to create vertex input layout with error %d (textured: %d)\n", createVertexInputLayoutResult, textured);
 		vertexShader->Release();
 		return false;
 	}
@@ -299,13 +247,11 @@ static bool createShader(Renderer *renderer, Shader_d3d11 *shader, const char *v
 	ID3D11PixelShader *pixelShader = nullptr;
 	HRESULT pixelShaderResult = device->CreatePixelShader(pixelShaderBytes, pixelShaderLength, nullptr, &pixelShader);
 
-	free(pixelShaderBytes);
-
 	if (FAILED(pixelShaderResult))
 	{
 		vertexInputLayout->Release();
 		vertexShader->Release();
-		fprintf(stderr, "Error: failed to create pixel shader with error %d from %s\n", pixelShaderResult, pixelShaderName);
+		fprintf(stderr, "Error: failed to create pixel shader with error %d (textured: %d)\n", pixelShaderResult, textured);
 		return false;
 	}
 	
@@ -675,13 +621,13 @@ extern "C" bool createRenderer_d3d11(Renderer *renderer, RendererCreateOptions o
 		goto INIT_FAILURE;
 	}
 
-	if (!createShader(renderer, &renderer->d3d11PositionShader, "Data\\Shaders\\position-vertex.cso", "Data\\Shaders\\position-pixel.cso", false))
+	if (!createShader(renderer, &renderer->d3d11PositionShader, (const void *)&gPositionVertexShaderBytes, sizeof(gPositionVertexShaderBytes), (const void *)&gPositionPixelShaderBytes, sizeof(gPositionPixelShaderBytes), false))
 	{
 		fprintf(stderr, "Error: Failed to create position shader\n");
 		goto INIT_FAILURE;
 	}
 
-	if (!createShader(renderer, &renderer->d3d11TexturePositionShader, "Data\\Shaders\\texture-position-vertex.cso", "Data\\Shaders\\texture-position-pixel.cso", true))
+	if (!createShader(renderer, &renderer->d3d11TexturePositionShader, (const void *)&gTexturePositionVertexShaderBytes, sizeof(gTexturePositionVertexShaderBytes), (const void *)&gTexturePositionPixelShaderBytes, sizeof(gTexturePositionPixelShaderBytes), true))
 	{
 		fprintf(stderr, "Error: Failed to create texture position shader\n");
 		goto INIT_FAILURE;
