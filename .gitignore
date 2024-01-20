@@ -6,10 +6,7 @@ win/Release
 win/x64
 win/dinput.pdb
 win/.vs
-win/position-pixel.h
-win/position-vertex.h
-win/texture-position-pixel.h
-win/texture-position-vertex.h
+win/Shaders/*.h
 *.sdf
 *.suo
 #*.vcxproj.user
