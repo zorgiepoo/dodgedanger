@@ -39,6 +39,7 @@
 
 #define MAX_CUBE_COUNT 1024
 #define MAX_BOUNDARY_X_MAGNITUDE 8
+#define MAX_BOUNDARY_RENDER_GAP 0.2
 #define PLAYER_MAGNITUDE 0.05f
 #define CUBE_MAGNITUDE 1.0f
 #define PLAYER_INITIAL_SPEED 4.0f
@@ -144,7 +145,7 @@ static void drawScene(Renderer *renderer, void *context)
         // Draw walls boundary
         {
             mat4_t rotatedModelViewMatrix = m4_mul(worldRotationMatrix, playerModelTranslationMatrix);
-            mat4_t scalingMatrix = m4_scaling(vec3((ZGFloat)MAX_BOUNDARY_X_MAGNITUDE, 1.0f, playerPosition.z + PROJECTION_FAR_VIEW_DISTANCE));
+            mat4_t scalingMatrix = m4_scaling(vec3((ZGFloat)MAX_BOUNDARY_X_MAGNITUDE + MAX_BOUNDARY_RENDER_GAP, 1.0f, playerPosition.z + PROJECTION_FAR_VIEW_DISTANCE));
             mat4_t modelViewMatrix = m4_mul(rotatedModelViewMatrix, scalingMatrix);
             
             color4_t color = (color4_t){0.0f, 1.0f, 0.0f, 1.0f};
