@@ -242,6 +242,7 @@ LRESULT CALLBACK windowCallback(HWND handle, UINT message, WPARAM wParam, LPARAM
 ZGWindow* ZGCreateWindow(const char* windowTitle, int32_t windowWidth, int32_t windowHeight, bool* fullscreenFlag)
 {
 	// This may not be necessary and fail if it's already set, but making the call in case
+	// The DPI awareness should primarily be set in the project's manifest settings
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
 	HINSTANCE appInstance = GetModuleHandle(NULL);
