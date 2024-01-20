@@ -393,10 +393,14 @@ static bool ZGGetWindowSizeForHandle(HWND handle, int32_t* width, int32_t* heigh
 
 		*width = (int32_t)(drawableWidth / scalingFactor);
 		*height = (int32_t)(drawableHeight / scalingFactor);
+
+		return true;
 	}
 	else
 	{
 		fprintf(stderr, "Error: failed to get window size: %d\n", GetLastError());
+
+		return false;
 	}
 }
 
