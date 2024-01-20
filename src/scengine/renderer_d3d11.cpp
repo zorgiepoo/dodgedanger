@@ -353,6 +353,8 @@ extern "C" bool createRenderer_d3d11(Renderer *renderer, RendererCreateOptions o
 	ID3D11BlendState *oneMinusAlphaBlendState = nullptr;
 	ID3D11RasterizerState *rasterState = nullptr;
 
+	renderer->clearColor = options.clearColor;
+
 	renderer->windowWidth = options.windowWidth > 1 ? options.windowWidth : 1;
 	renderer->windowHeight = options.windowHeight > 1 ? options.windowHeight : 1;
 
@@ -761,7 +763,8 @@ extern "C" void renderFrame_d3d11(Renderer *renderer, void(*drawFunc)(Renderer *
 	ID3D11DeviceContext *context = (ID3D11DeviceContext *)renderer->d3d11Context;
 	ID3D11RenderTargetView *renderTargetView = (ID3D11RenderTargetView *)renderer->d3d11RenderTargetView;
 
-	float clearColor[] = { 0.4f, 0.4f, 0.4f, 1.0f };
+	color4_t inputClearColor = renderer->clearColor;
+	float clearColor[] = { inputClearColor.red, inputClearColor.green, inputClearColor.blue, inputClearColor.alpha };
 	context->ClearRenderTargetView(renderTargetView, clearColor);
 
 	// Clear depth buffer

@@ -22,6 +22,14 @@ extern "C" {
 
 typedef struct
 {
+    ZGFloat red;
+    ZGFloat green;
+    ZGFloat blue;
+    ZGFloat alpha;
+} color4_t;
+
+typedef struct
+{
 #if PLATFORM_IOS
 	void (*touchEventHandler)(ZGTouchEvent, void *);
 	void *touchEventContext;
@@ -33,6 +41,8 @@ typedef struct
 #endif
 
 	const char* windowTitle;
+    
+    color4_t clearColor;
 
 	int32_t windowWidth;
 	int32_t windowHeight;
@@ -55,14 +65,6 @@ typedef enum
 	RENDERER_TRIANGLE_STRIP_MODE = 2,
     RENDERER_LINE_MODE = 3
 } RendererMode;
-
-typedef struct
-{
-	ZGFloat red;
-	ZGFloat green;
-	ZGFloat blue;
-	ZGFloat alpha;
-} color4_t;
 
 typedef struct
 {
@@ -145,6 +147,8 @@ typedef struct _Renderer
 	ZGWindow *window;
 	ZGFloat projectionMatrix[16];
 
+    color4_t clearColor;
+    
 	// Width and height of drawable in pixels
 	int32_t drawableWidth;
 	int32_t drawableHeight;

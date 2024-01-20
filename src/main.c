@@ -866,6 +866,7 @@ static ZGWindow *appLaunchedHandler(void *context)
     
     RendererCreateOptions rendererOptions = { 0 };
     
+    rendererOptions.clearColor = (color4_t){0.4f, 0.4f, 0.4f, 1.0f};
     rendererOptions.windowTitle = WINDOW_TITLE;
     rendererOptions.windowWidth = windowWidth;
     rendererOptions.windowHeight = windowHeight;

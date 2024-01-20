@@ -332,7 +332,8 @@ static void updateRealViewport(Renderer *renderer)
 		CFRelease(renderer->metalRenderPassDescriptor);
 	}
 	
-	MTLClearColor clearColor = MTLClearColorMake(0.4, 0.4, 0.4, 1.0);
+    color4_t inputClearColor = renderer->clearColor;
+	MTLClearColor clearColor = MTLClearColorMake(inputClearColor.red, inputClearColor.green, inputClearColor.blue, inputClearColor.alpha);
 	
 	MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
 	
@@ -459,6 +460,8 @@ bool createRenderer_metal(Renderer *renderer, RendererCreateOptions options)
 {
 	@autoreleasepool
 	{
+        renderer->clearColor = options.clearColor;
+        
 		renderer->windowWidth = options.windowWidth;
 		renderer->windowHeight = options.windowHeight;
 		
