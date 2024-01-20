@@ -59,6 +59,7 @@
     <ClInclude Include="..\src\scengine\thread.h" />
     <ClInclude Include="..\src\scengine\window.h" />
     <ClInclude Include="..\src\scengine\zgtime.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\position-pixel.hlsl">
@@ -117,6 +118,9 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gTexturePositionVertexShaderBytes</VariableName>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gTexturePositionVertexShaderBytes</VariableName>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DodgeDanger.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -134,6 +134,9 @@
     <ClInclude Include="..\src\scengine\zgtime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\position-pixel.hlsl">
@@ -148,5 +151,10 @@
     <FxCompile Include="Shaders\texture-position-vertex.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DodgeDanger.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
