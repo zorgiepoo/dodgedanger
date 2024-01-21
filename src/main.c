@@ -80,9 +80,16 @@ typedef struct
     bool renderInstruction;
 } Game;
 
+// This struct only exists to add another level of indirection that makes it slightly more challenging for cheat tools to find
 typedef struct
 {
+    uint32_t numberOfGamesPlayed;
     Game *game;
+} GameSeries;
+
+typedef struct
+{
+    GameSeries *gameSeries;
     Renderer renderer;
     
     BufferArrayObject cubeVertexArrayObject;
@@ -107,9 +114,9 @@ typedef struct
 static void drawScene(Renderer *renderer, void *context)
 {
     AppContext *appContext = context;
-    Game *game = appContext->game;
+    GameSeries *gameSeries = appContext->gameSeries;
     
-    if (game == NULL)
+    if (gameSeries == NULL)
     {
         {
             ZGFloat scale = 0.015f;
@@ -136,6 +143,8 @@ static void drawScene(Renderer *renderer, void *context)
     }
     else
     {
+        Game *game = gameSeries->game;
+        
         mat4_t worldRotationMatrix = m4_rotation_x(0.0f * ((ZGFloat)M_PI / 180.0f));
         
         vec3_t playerPosition = game->playerPosition;
@@ -334,7 +343,13 @@ static void generateCubePositions(Game *game, uint32_t startingIndex)
 
 static void animate(double timeDelta, AppContext *appContext)
 {
-    Game *game = appContext->game;
+    GameSeries *gameSeries = appContext->gameSeries;
+    if (gameSeries == NULL)
+    {
+        return;
+    }
+    
+    Game *game = gameSeries->game;
     if (game == NULL || game->playerLost || game->paused)
     {
         return;
@@ -393,6 +408,8 @@ static void animate(double timeDelta, AppContext *appContext)
                 appContext->highScore = game->score;
             }
             
+            gameSeries->numberOfGamesPlayed++;
+            
             ZGAppSetAllowsScreenIdling(true);
             break;
         }
@@ -439,7 +456,8 @@ static void appSuspendedHandler(void *context)
 static void handleWindowEvent(ZGWindowEvent event, void *context)
 {
     AppContext *appContext = context;
-    Game *game = appContext->game;
+    GameSeries *gameSeries = appContext->gameSeries;
+    Game *game = (gameSeries != NULL) ? gameSeries->game : NULL;
     
     switch (event.type)
     {
@@ -473,11 +491,13 @@ static void handleWindowEvent(ZGWindowEvent event, void *context)
 
 static void destroyGame(AppContext *appContext)
 {
-    if (appContext->game != NULL)
+    GameSeries *gameSeries = appContext->gameSeries;
+    if (gameSeries != NULL)
     {
-        free(appContext->game->cubes);
-        free(appContext->game);
-        appContext->game = NULL;
+        free(gameSeries->game->cubes);
+        free(gameSeries->game);
+        free(gameSeries);
+        appContext->gameSeries = NULL;
     }
     
     ZGAppSetAllowsScreenIdling(true);
@@ -485,20 +505,27 @@ static void destroyGame(AppContext *appContext)
 
 static void createNewGame(AppContext *appContext)
 {
-    if (appContext->game != NULL)
+    if (appContext->gameSeries == NULL)
     {
-        free(appContext->game->cubes);
-        free(appContext->game);
-        appContext->game = NULL;
+        appContext->gameSeries = calloc(1, sizeof(*appContext->gameSeries));
     }
     
-    appContext->game = calloc(1, sizeof(Game));
-    appContext->game->playerSpeed = PLAYER_INITIAL_SPEED;
-    appContext->game->renderInstruction = true;
+    GameSeries *gameSeries = appContext->gameSeries;
+    Game *oldGame = gameSeries->game;
+    if (oldGame != NULL)
+    {
+        free(oldGame->cubes);
+        free(oldGame);
+    }
     
-    appContext->game->cubes = calloc(MAX_CUBE_COUNT, sizeof(appContext->game->cubes[0]));
+    Game *newGame = calloc(1, sizeof(*newGame));
+    gameSeries->game = newGame;
+    newGame->playerSpeed = PLAYER_INITIAL_SPEED;
+    newGame->renderInstruction = true;
     
-    generateCubePositions(appContext->game, 1);
+    newGame->cubes = calloc(MAX_CUBE_COUNT, sizeof(newGame->cubes[0]));
+    
+    generateCubePositions(newGame, 1);
     
     ZGAppSetAllowsScreenIdling(false);
 }
@@ -511,8 +538,8 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
     {
         case ZGKeyboardEventTypeKeyDown:
         {
-            Game *game = appContext->game;
-            if (game == NULL)
+            GameSeries *gameSeries = appContext->gameSeries;
+            if (gameSeries == NULL)
             {
                 switch (event.keyCode)
                 {
@@ -537,6 +564,7 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
             }
             else
             {
+                Game *game = gameSeries->game;
                 if (game->playerLost)
                 {
                     switch (event.keyCode)
@@ -615,9 +643,11 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
         }
         case ZGKeyboardEventTypeKeyUp:
         {
-            Game *game = appContext->game;
-            if (game != NULL)
+            GameSeries *gameSeries = appContext->gameSeries;
+            if (gameSeries != NULL)
             {
+                Game *game = gameSeries->game;
+                
                 switch (event.keyCode)
                 {
                     case ZG_KEYCODE_RIGHT:
@@ -641,7 +671,7 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
 static void pollEventHandler(void *context, void *systemEvent)
 {
     AppContext *appContext = context;
-    Game *game = appContext->game;
+    GameSeries *gameSeries = appContext->gameSeries;
     
     uint16_t gamepadEventsCount = 0;
     GamepadEvent *gamepadEvents = pollGamepadEvents(appContext->gamepadManager, systemEvent, &gamepadEventsCount);
@@ -663,7 +693,7 @@ static void pollEventHandler(void *context, void *systemEvent)
                     case GAMEPAD_BUTTON_LEFTTRIGGER:
                     case GAMEPAD_BUTTON_RIGHTTRIGGER:
                     case GAMEPAD_BUTTON_START:
-                        if (game == NULL)
+                        if (gameSeries == NULL)
                         {
                             if (!appContext->playOptionSelected)
                             {
@@ -674,38 +704,43 @@ static void pollEventHandler(void *context, void *systemEvent)
                                 createNewGame(appContext);
                             }
                         }
-                        else if (game->playerLost)
+                        else
                         {
-                            if (!game->exitOptionSelected)
+                            Game *game = gameSeries->game;
+                            if (game->playerLost)
                             {
-                                createNewGame(appContext);
+                                if (!game->exitOptionSelected)
+                                {
+                                    createNewGame(appContext);
+                                }
+                                else
+                                {
+                                    destroyGame(appContext);
+                                }
                             }
-                            else
+                            else if (game->paused)
                             {
-                                destroyGame(appContext);
+                                if (!game->exitOptionSelected)
+                                {
+                                    game->paused = false;
+                                    ZGAppSetAllowsScreenIdling(false);
+                                }
+                                else
+                                {
+                                    destroyGame(appContext);
+                                }
                             }
-                        }
-                        else if (game->paused)
-                        {
-                            if (!game->exitOptionSelected)
+                            else if (gamepadEvent->button == GAMEPAD_BUTTON_START)
                             {
-                                game->paused = false;
-                                ZGAppSetAllowsScreenIdling(false);
+                                game->paused = true;
+                                ZGAppSetAllowsScreenIdling(true);
                             }
-                            else
-                            {
-                                destroyGame(appContext);
-                            }
-                        }
-                        else if (gamepadEvent->button == GAMEPAD_BUTTON_START)
-                        {
-                            game->paused = true;
-                            ZGAppSetAllowsScreenIdling(true);
                         }
                         break;
                     case GAMEPAD_BUTTON_BACK:
-                        if (game != NULL)
+                        if (gameSeries != NULL)
                         {
+                            Game *game = gameSeries->game;
                             if (game->playerLost)
                             {
                                 destroyGame(appContext);
@@ -724,25 +759,29 @@ static void pollEventHandler(void *context, void *systemEvent)
                         break;
                     case GAMEPAD_BUTTON_DPAD_UP:
                     case GAMEPAD_BUTTON_DPAD_DOWN:
-                        if (game == NULL)
+                        if (gameSeries == NULL)
                         {
                             appContext->playOptionSelected = !appContext->playOptionSelected;
                         }
-                        else if (game->playerLost || game->paused)
+                        else
                         {
-                            game->exitOptionSelected = !game->exitOptionSelected;
+                            Game *game = gameSeries->game;
+                            if (game->playerLost || game->paused)
+                            {
+                                game->exitOptionSelected = !game->exitOptionSelected;
+                            }
                         }
                         break;
                     case GAMEPAD_BUTTON_DPAD_LEFT:
-                        if (game != NULL)
+                        if (gameSeries != NULL)
                         {
-                            game->playerDirectionLeft = true;
+                            gameSeries->game->playerDirectionLeft = true;
                         }
                         break;
                     case GAMEPAD_BUTTON_DPAD_RIGHT:
-                        if (game != NULL)
+                        if (gameSeries != NULL)
                         {
-                            game->playerDirectionRight = true;
+                            gameSeries->game->playerDirectionRight = true;
                         }
                         break;
                     case GAMEPAD_BUTTON_MAX:
@@ -769,15 +808,15 @@ static void pollEventHandler(void *context, void *systemEvent)
                     case GAMEPAD_BUTTON_DPAD_DOWN:
                         break;
                     case GAMEPAD_BUTTON_DPAD_LEFT:
-                        if (game != NULL)
+                        if (gameSeries != NULL)
                         {
-                            game->playerDirectionLeft = false;
+                            gameSeries->game->playerDirectionLeft = false;
                         }
                         break;
                     case GAMEPAD_BUTTON_DPAD_RIGHT:
-                        if (game != NULL)
+                        if (gameSeries != NULL)
                         {
-                            game->playerDirectionRight = false;
+                            gameSeries->game->playerDirectionRight = false;
                         }
                         break;
                     case GAMEPAD_BUTTON_MAX:
