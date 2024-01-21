@@ -154,7 +154,7 @@ static void drawScene(Renderer *renderer, void *context)
         // Draw walls boundary
         {
             mat4_t rotatedModelViewMatrix = m4_mul(worldRotationMatrix, playerModelTranslationMatrix);
-            mat4_t scalingMatrix = m4_scaling(vec3((ZGFloat)MAX_BOUNDARY_X_MAGNITUDE + MAX_BOUNDARY_RENDER_GAP, 1.0f, playerPosition.z + PROJECTION_FAR_VIEW_DISTANCE));
+            mat4_t scalingMatrix = m4_scaling(vec3((ZGFloat)(MAX_BOUNDARY_X_MAGNITUDE + MAX_BOUNDARY_RENDER_GAP), 1.0f, playerPosition.z + PROJECTION_FAR_VIEW_DISTANCE));
             mat4_t modelViewMatrix = m4_mul(rotatedModelViewMatrix, scalingMatrix);
             
             color4_t color = (color4_t){0.0f, 1.0f, 0.0f, 1.0f};
