@@ -64,6 +64,8 @@
 #define PLAYER_SPEED_INCREASE 0.2f
 #define CUBE_PLAYER_DIST_AWAY 100.0f
 #define CUBE_PLAYER_CROSS_DIST_AWAY 40.0f
+#define CUBE_PLAYER_WARN_MAX_FACTOR 8
+#define CUBE_PLAYER_WARN_FUTURE_MAX_ITERATIONS 100
 
 #define HIGH_SCORE_USER_DEFAULTS_KEY "high_score"
 #define FULLSCREEN_USER_DEFAULTS_KEY "fullscreen"
@@ -76,6 +78,7 @@ typedef struct
     vec3_t position;
     color4_t color;
     bool dead;
+    bool warning;
 } Cube;
 
 typedef struct
@@ -195,6 +198,8 @@ static void drawScene(Renderer *renderer, void *context)
             mat4_t scalingMatrix = m4_scaling(vec3(0.99f, 1.0f, 1.0f));
             mat4_t modelViewMatrix = m4_mul(rotatedModelViewMatrix, scalingMatrix);
             
+            color4_t cubeColor = cubes[cubeIndex].warning ? (color4_t){1.0f, 1.0f, 0.0f, 1.0f} : cubes[cubeIndex].color;
+            
             {
                 uint32_t indicesCount;
                 if (cubes[cubeIndex].position.z < playerPosition.z - CUBE_PLAYER_CROSS_DIST_AWAY)
@@ -206,7 +211,7 @@ static void drawScene(Renderer *renderer, void *context)
                     indicesCount = 52;
                 }
                 
-                drawVerticesFromIndices(renderer, modelViewMatrix, RENDERER_LINE_MODE, appContext->cubeVertexArrayObject, appContext->cubeLineIndicesBufferObject, indicesCount, cubes[cubeIndex].color, RENDERER_OPTION_NONE);
+                drawVerticesFromIndices(renderer, modelViewMatrix, RENDERER_LINE_MODE, appContext->cubeVertexArrayObject, appContext->cubeLineIndicesBufferObject, indicesCount, cubeColor, RENDERER_OPTION_NONE);
             }
         }
         
@@ -287,6 +292,7 @@ static void generateCubePositions(Game *game, uint32_t startingIndex)
     cubes[0].position = vec3(0.0f, 0.0f, 0.0f);
     cubes[0].color = (color4_t){0.0f, 1.0f, 0.0f, 1.0f};
     cubes[0].dead = false;
+    cubes[0].warning = false;
     
     uint32_t currentCubeIndex = startingIndex;
     ZGFloat startDepth = startingIndex > 0 ? -CUBE_MAGNITUDE * 2 * 5 : 0.0f;
@@ -356,6 +362,7 @@ static void generateCubePositions(Game *game, uint32_t startingIndex)
             uint32_t colorIndex = (uint32_t)(mt_random() % (sizeof(colors) / sizeof(colors[0])));
             cubes[currentCubeIndex].color = colors[colorIndex];
             cubes[currentCubeIndex].dead = false;
+            cubes[currentCubeIndex].warning = false;
             
             currentCubeIndex++;
         }
@@ -452,6 +459,33 @@ static void animate(double timeDelta, AppContext *appContext)
                     game->playerSpeed = PLAYER_SPEED_CAP;
                 }
             }
+        }
+        else if (distance <= appContext->playerCubeDiagonalSumDistance * CUBE_PLAYER_WARN_MAX_FACTOR)
+        {
+            bool foundFutureCollision = false;
+            vec3_t playerPositionInFuture = v3_add(game->playerPosition, deltaVector);
+            for (uint32_t collideInFutureIndex = 0; collideInFutureIndex < CUBE_PLAYER_WARN_FUTURE_MAX_ITERATIONS; collideInFutureIndex++)
+            {
+                playerPositionInFuture = v3_add(playerPositionInFuture, deltaVector);
+                
+                ZGFloat collideInFutureDistance = sqrtf((cube.position.x - playerPositionInFuture.x) * (cube.position.x - playerPositionInFuture.x) + (cube.position.y - playerPositionInFuture.y) * (cube.position.y - playerPositionInFuture.y) + (cube.position.z - playerPositionInFuture.z) * (cube.position.z - playerPositionInFuture.z));
+                
+                if (collideInFutureDistance <= appContext->playerCubeDiagonalSumDistance)
+                {
+                    foundFutureCollision = true;
+                    break;
+                }
+                else if (playerPositionInFuture.z - PLAYER_MAGNITUDE < cube.position.z + CUBE_MAGNITUDE)
+                {
+                    break;
+                }
+            }
+            
+            cubes[cubeIndex].warning = foundFutureCollision;
+        }
+        else
+        {
+            cubes[cubeIndex].warning = false;
         }
     }
     
