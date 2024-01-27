@@ -190,7 +190,11 @@ static void drawScene(Renderer *renderer, void *context)
             vec3_t cubePosition = cubes[cubeIndex].position;
             mat4_t cubeModelTranslationMatrix = m4_mul(playerModelTranslationMatrix, m4_translation(cubePosition));
             
-            mat4_t modelViewMatrix = m4_mul(worldRotationMatrix, cubeModelTranslationMatrix);
+            mat4_t rotatedModelViewMatrix = m4_mul(worldRotationMatrix, cubeModelTranslationMatrix);
+            // Make sure cubes don't quite touch each other from rendering perspective
+            mat4_t scalingMatrix = m4_scaling(vec3(0.99f, 1.0f, 1.0f));
+            mat4_t modelViewMatrix = m4_mul(rotatedModelViewMatrix, scalingMatrix);
+            
             {
                 uint32_t indicesCount;
                 if (cubes[cubeIndex].position.z < playerPosition.z - CUBE_PLAYER_CROSS_DIST_AWAY)
