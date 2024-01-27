@@ -300,8 +300,11 @@ static void generateCubePositions(Game *game, uint32_t startingIndex)
     color4_t colors[] = {(color4_t){0.0f, 1.0f, 0.0f, 1.0f}, (color4_t){0.0f, 0.0f, 1.0f, 1.0f}, (color4_t){0.7f, 0.0f, 0.0f, 1.0f}, (color4_t){1.0f, 0.0f, 1.0f, 1.0f}, (color4_t){0.2f, 0.2f, 0.5f, 1.0f}};
     
     const uint32_t maxCountPerExpertLevel = 5;
+    const uint32_t maxCountPerMediumLevel = 4;
     const uint32_t maxCountPerBeginnerLevel = 3;
-    const uint32_t cubeCountForExpertLevelEntry = 50;
+    
+    const uint32_t cubeCountForMediumLevelEntry = 50;
+    const uint32_t cubeCountForExpertLevelEntry = 100;
     
     uint32_t *prevRandomXIndices = calloc(maxCountPerExpertLevel, sizeof(*prevRandomXIndices));
     const uint32_t maxDepthIncreaseCount = 5;
@@ -310,7 +313,19 @@ static void generateCubePositions(Game *game, uint32_t startingIndex)
     
     while (currentCubeIndex < MAX_CUBE_COUNT)
     {
-        uint32_t maxCountPerLevel = (currentCubeIndex < cubeCountForExpertLevelEntry) ? maxCountPerBeginnerLevel : maxCountPerExpertLevel;
+        uint32_t maxCountPerLevel;
+        if (currentCubeIndex < cubeCountForMediumLevelEntry)
+        {
+            maxCountPerLevel = maxCountPerBeginnerLevel;
+        }
+        else if (currentCubeIndex < cubeCountForExpertLevelEntry)
+        {
+            maxCountPerLevel = maxCountPerMediumLevel;
+        }
+        else
+        {
+            maxCountPerLevel = maxCountPerExpertLevel;
+        }
         
         uint32_t countPerLevel;
         if (MAX_CUBE_COUNT - currentCubeIndex < maxCountPerLevel)
