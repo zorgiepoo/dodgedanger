@@ -11,13 +11,11 @@ This game was developed with the following motivations:
 * To re-use and extend the backend used for my more developed game [Sky Checkers](https://github.com/zorgiepoo/Sky-Checkers).
 * To provide a sample game that can be used as an introduction for searching pointers to variables using [Bit Slicer](https://github.com/zorgiepoo/Bit-Slicer).
 
-A known quirk to this game is that the player has to imagine where they will not collide with obstacles. Consider this a "feature" (the game allows escaping from tight spots with quick reflexes). No audio assets are used so I suggest playing music in the background.
+No audio assets are used so I suggest playing music in the background.
 
 Game contollers are supported.
 
-Maybe one day the graphics will be enhanced. Alas.
-
 ## Download
 
-* [macOS 11.0 or later](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-macOS.tar.xz) (arm64/x86_64) (304 KB)
-* [Windows 10 or later](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-win.zip) (x64) (211 KB)
+* [macOS 11.0 or later](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-macOS.tar.xz) (arm64/x86_64) (319 KB)
+* [Windows 10 or later](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-win.zip) (x64) (212 KB)
