@@ -52,7 +52,11 @@
 
 #define TEXT_RENDERING_CACHE_COUNT 32
 
+#if PLATFORM_OSX
 #define WINDOW_TITLE ""
+#else
+#define WINDOW_TITLE "Dodge Danger"
+#endif
 
 #define MAX_CUBE_COUNT 4096
 #define MAX_BOUNDARY_X_MAGNITUDE 8
