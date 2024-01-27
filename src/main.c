@@ -439,7 +439,7 @@ static void animate(double timeDelta, AppContext *appContext)
             ZGAppSetAllowsScreenIdling(true);
             break;
         }
-        else if (playerPosition.z + PLAYER_MAGNITUDE < cube.position.z + CUBE_MAGNITUDE)
+        else if (playerPosition.z - PLAYER_MAGNITUDE < cube.position.z + CUBE_MAGNITUDE)
         {
             cubes[cubeIndex].dead = true;
             game->score++;
