@@ -54,14 +54,14 @@
 
 #define WINDOW_TITLE ""
 
-#define MAX_CUBE_COUNT 1024
+#define MAX_CUBE_COUNT 4096
 #define MAX_BOUNDARY_X_MAGNITUDE 8
 #define MAX_BOUNDARY_RENDER_GAP 0.2
 #define PLAYER_MAGNITUDE 0.05f
 #define CUBE_MAGNITUDE 1.0f
 #define PLAYER_INITIAL_SPEED 4.0f
 #define PLAYER_SPEED_CAP 20.0f
-#define PLAYER_SPEED_INCREASE 0.3f
+#define PLAYER_SPEED_INCREASE 0.2f
 #define CUBE_PLAYER_DIST_AWAY 100.0f
 #define CUBE_PLAYER_CROSS_DIST_AWAY 40.0f
 
@@ -293,14 +293,19 @@ static void generateCubePositions(Game *game, uint32_t startingIndex)
     
     color4_t colors[] = {(color4_t){0.0f, 1.0f, 0.0f, 1.0f}, (color4_t){0.0f, 0.0f, 1.0f, 1.0f}, (color4_t){0.7f, 0.0f, 0.0f, 1.0f}, (color4_t){1.0f, 0.0f, 1.0f, 1.0f}, (color4_t){0.2f, 0.2f, 0.5f, 1.0f}};
     
-    const uint32_t maxCountPerLevel = 5;
-    uint32_t *prevRandomXIndices = calloc(maxCountPerLevel, sizeof(*prevRandomXIndices));
+    const uint32_t maxCountPerExpertLevel = 5;
+    const uint32_t maxCountPerBeginnerLevel = 3;
+    const uint32_t cubeCountForExpertLevelEntry = 50;
+    
+    uint32_t *prevRandomXIndices = calloc(maxCountPerExpertLevel, sizeof(*prevRandomXIndices));
     const uint32_t maxDepthIncreaseCount = 5;
     
     const uint32_t maxCubesPerLevel = (uint32_t)((MAX_BOUNDARY_X_MAGNITUDE * 2.0f) / (CUBE_MAGNITUDE * 2.0f));
     
     while (currentCubeIndex < MAX_CUBE_COUNT)
     {
+        uint32_t maxCountPerLevel = (currentCubeIndex < cubeCountForExpertLevelEntry) ? maxCountPerBeginnerLevel : maxCountPerExpertLevel;
+        
         uint32_t countPerLevel;
         if (MAX_CUBE_COUNT - currentCubeIndex < maxCountPerLevel)
         {
