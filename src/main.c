@@ -231,7 +231,7 @@ static void drawScene(Renderer *renderer, void *context)
         if (game->renderInstruction)
         {
             ZGFloat scale = 0.01f;
-            color4_t color = (color4_t){1.0f, 1.0f, 1.0f, 1.0f};
+            color4_t color = cubes[0].warning ? (color4_t){1.0f, 1.0f, 0q.0f, 1.0f} : (color4_t){1.0f, 1.0f, 1.0f, 1.0f};
             
             mat4_t scoreModelViewMatrix = m4_translation((vec3_t){0.0f, 14.0f, -70.0f});
             
@@ -405,7 +405,7 @@ static void animate(double timeDelta, AppContext *appContext)
     
     game->timer += timeDelta;
     
-    if (game->timer >= 3.0f)
+    if (game->timer >= 4.0f)
     {
         game->renderInstruction = false;
     }
