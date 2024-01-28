@@ -17,5 +17,8 @@ Game contollers are supported.
 
 ## Download
 
-* [macOS 11.0 or later](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-macOS.tar.xz) (arm64/x86_64) (319 KB)
-* [Windows 10 or later](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-win.zip) (x64) (212 KB)
+* [macOS 11.0 or later)](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-macOS.tar.xz) (319 KB)
+* [Windows 10 or later (Intel)](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-win.zip) (212 KB)
+* [Windows 10 or later (ARM))](https://github.com/zorgiepoo/dodgedanger/releases/latest/download/DodgeDanger-win-arm.zip) (155 KB)
+
+The Windows ARM version has not been tested yet. Please let me know if it works!
