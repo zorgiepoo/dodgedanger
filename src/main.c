@@ -750,12 +750,13 @@ static void handleKeyboardEvent(ZGKeyboardEvent event, void *context)
 static void pollEventHandler(void *context, void *systemEvent)
 {
     AppContext *appContext = context;
-    GameSeries *gameSeries = appContext->gameSeries;
     
     uint16_t gamepadEventsCount = 0;
     GamepadEvent *gamepadEvents = pollGamepadEvents(appContext->gamepadManager, systemEvent, &gamepadEventsCount);
     for (uint16_t gamepadEventIndex = 0; gamepadEventIndex < gamepadEventsCount; gamepadEventIndex++)
     {
+        GameSeries *gameSeries = appContext->gameSeries;
+        
         GamepadEvent *gamepadEvent = &gamepadEvents[gamepadEventIndex];
         
         switch (gamepadEvent->state)
