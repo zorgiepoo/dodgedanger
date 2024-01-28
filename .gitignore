@@ -4,6 +4,7 @@ mac/DodgeDanger.xcodeproj/project.xcworkspace/xcuserdata
 win/Debug
 win/Release
 win/x64
+win/ARM
 win/dinput.pdb
 win/.vs
 win/Shaders/*.h
