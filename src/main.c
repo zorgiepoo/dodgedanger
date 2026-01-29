@@ -224,7 +224,7 @@ static void drawScene(Renderer *renderer, void *context)
             ZGFloat scale = 0.008f;
             color4_t color = (color4_t){1.0f, 1.0f, 1.0f, 1.0f};
             
-            mat4_t scoreModelViewMatrix = m4_translation((vec3_t){-25.0f, 26.0f, -70.0f});
+            mat4_t scoreModelViewMatrix = m4_translation((vec3_t){-42.0f, 26.0f, -70.0f});
             
             char scoreBuffer[256] = {0};
             snprintf(scoreBuffer, sizeof(scoreBuffer) - 1, "Score: %u", game->score);
@@ -249,7 +249,7 @@ static void drawScene(Renderer *renderer, void *context)
                 ZGFloat scale = 0.008f;
                 color4_t color = (color4_t){1.0f, 1.0f, 1.0f, 1.0f};
                 
-                mat4_t scoreModelViewMatrix = m4_translation((vec3_t){-25.0f, 22.0f, -70.0f});
+                mat4_t scoreModelViewMatrix = m4_translation((vec3_t){-42.0f, 22.0f, -70.0f});
                 
                 char scoreBuffer[256] = {0};
                 snprintf(scoreBuffer, sizeof(scoreBuffer) - 1, "High Score: %u", appContext->highScore);
