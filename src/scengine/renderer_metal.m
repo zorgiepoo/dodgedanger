@@ -104,16 +104,28 @@ void popDebugGroup_metal(Renderer *renderer);
 - (void)layoutSubviews
 {
 	[super layoutSubviews];
-	[self updateDrawableSize];
+	
+	CGSize drawableSize = [self updateDrawableSize];
+	
+#if !PLATFORM_TVOS
+	if (_renderer->drawableWidth != (int32_t)drawableSize.width || _renderer->drawableHeight != (int32_t)drawableSize.height)
+	{
+		updateRealViewport(_renderer);
+		[[NSNotificationCenter defaultCenter] postNotificationName:ZGMetalViewportChangedNotification object:nil];
+	}
+#else
+	(void)drawableSize;
+#endif
 }
 
-- (void)updateDrawableSize
+- (CGSize)updateDrawableSize
 {
 	CGSize size = self.bounds.size;
 	CGFloat contentsScale = self.layer.contentsScale;
 	CAMetalLayer *layer = (CAMetalLayer *)self.layer;
 	
 	layer.drawableSize = CGSizeMake(size.width * contentsScale, size.height * contentsScale);
+	return layer.drawableSize;
 }
 
 @end
@@ -552,15 +564,15 @@ bool createRenderer_metal(Renderer *renderer, RendererCreateOptions options)
 		UIView *contentView = window.rootViewController.view;
 		
 		ZGMetalView *metalView = [[ZGMetalView alloc] initWithFrame:contentView.frame scale:window.screen.nativeScale renderer:renderer];
+		metalView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 		[contentView addSubview:metalView];
 #else
 		NSWindow *window = (__bridge NSWindow *)(ZGWindowHandle(renderer->window));
 		NSView *contentView = window.contentView;
 		
 		// Add our metal view ourselves
-		// Don't create metal layer/view by creating a SDL_Renderer
-		// because it does a bunch of stuff we don't need for SDL's own renderer
 		ZGMetalView *metalView = [[ZGMetalView alloc] initWithFrame:contentView.frame renderer:renderer];
+		metalView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 		[contentView addSubview:metalView];
 #endif
 		
@@ -606,10 +618,10 @@ bool createRenderer_metal(Renderer *renderer, RendererCreateOptions options)
 		renderer->popDebugGroupPtr = popDebugGroup_metal;
 		
 		// Set window, keyboard, touch handlers
+		ZGSetWindowEventHandler(renderer->window, options.windowEventContext, options.windowEventHandler);
 #if PLATFORM_IOS
 		ZGSetTouchEventHandler(renderer->window, options.touchEventContext, options.touchEventHandler);
 #else
-		ZGSetWindowEventHandler(renderer->window, options.windowEventContext, options.windowEventHandler);
 		ZGSetKeyboardEventHandler(renderer->window, options.keyboardEventContext, options.keyboardEventHandler);
 #endif
 	}

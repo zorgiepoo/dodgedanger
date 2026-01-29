@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2024 Mayur Pawashe
+ Copyright (c) 2018 Mayur Pawashe
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +24,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "renderer_types.h"
 
-#include "platforms.h"
-#include "texture.h"
-
-void initFontFromFile(const char *filePath, int pointSize);
-
-#if !PLATFORM_LINUX
-void initFontWithName(const char *name, int pointSize);
-#endif
-
-TextureData createTextData(const char* string);
-
-#ifdef __cplusplus
-}
-#endif
+void createRenderer_gl(Renderer *renderer, RendererCreateOptions options);

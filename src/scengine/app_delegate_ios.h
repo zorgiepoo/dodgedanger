@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2024 Mayur Pawashe
+ Copyright (c) 2025 Mayur Pawashe
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,14 @@
  SOFTWARE.
  */
 
-#pragma once
+#import <UIKit/UIKit.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+NS_ASSUME_NONNULL_BEGIN
 
-#include "platforms.h"
-#include "texture.h"
+@interface ZGAppDelegate : UIResponder <UIApplicationDelegate>
 
-void initFontFromFile(const char *filePath, int pointSize);
+- (void)applicationDidShowMainWindowScene;
 
-#if !PLATFORM_LINUX
-void initFontWithName(const char *name, int pointSize);
-#endif
+@end
 
-TextureData createTextData(const char* string);
-
-#ifdef __cplusplus
-}
-#endif
+NS_ASSUME_NONNULL_END

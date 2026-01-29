@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2024 Mayur Pawashe
+ Copyright (c) 2019 Mayur Pawashe
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,37 @@
  SOFTWARE.
  */
 
-#pragma once
+#include <SDL3/SDL.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "keyboard.h"
 
-#include "platforms.h"
-#include "texture.h"
-
-void initFontFromFile(const char *filePath, int pointSize);
-
-#if !PLATFORM_LINUX
-void initFontWithName(const char *name, int pointSize);
-#endif
-
-TextureData createTextData(const char* string);
-
-#ifdef __cplusplus
+bool ZGTestReturnKeyCode(uint16_t keyCode)
+{
+	return (keyCode == SDL_SCANCODE_RETURN || keyCode == SDL_SCANCODE_KP_ENTER);
 }
-#endif
+
+bool ZGTestMetaModifier(uint64_t modifier)
+{
+	SDL_Keymod metaModifier = (SDL_KMOD_LCTRL | SDL_KMOD_RCTRL);
+	return (metaModifier & modifier) != 0;
+}
+
+const char *ZGGetKeyCodeName(uint16_t keyCode)
+{
+	return SDL_GetScancodeName((SDL_Scancode)keyCode);
+}
+
+char *ZGGetClipboardText(void)
+{
+	if (!SDL_HasClipboardText())
+	{
+		return NULL;
+	}
+
+	return SDL_GetClipboardText();
+}
+
+void ZGFreeClipboardText(char *clipboardText)
+{
+	SDL_free(clipboardText);
+}

@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2024 Mayur Pawashe
+ Copyright (c) 2019 Mayur Pawashe
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +24,28 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <stdint.h>
 #include "platforms.h"
-#include "texture.h"
 
-void initFontFromFile(const char *filePath, int pointSize);
-
-#if !PLATFORM_LINUX
-void initFontWithName(const char *name, int pointSize);
+typedef enum
+{
+	ZGTouchEventTypeTap,
+	ZGTouchEventTypePanChanged,
+	ZGTouchEventTypePanEnded,
+#if PLATFORM_TVOS
+	ZGTouchEventTypeMenuTap
 #endif
+} ZGTouchEventType;
 
-TextureData createTextData(const char* string);
-
-#ifdef __cplusplus
-}
-#endif
+typedef struct
+{
+	// Pan events
+	float deltaX;
+	float deltaY;
+	uint64_t timestamp;
+	// Pan and tap events
+	float x;
+	float y;
+	
+	ZGTouchEventType type;
+} ZGTouchEvent;

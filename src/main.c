@@ -528,10 +528,6 @@ static void appTerminatedHandler(void *context)
     closeDefaults(userDefaults);
 }
 
-static void appSuspendedHandler(void *context)
-{
-}
-
 static void handleWindowEvent(ZGWindowEvent event, void *context)
 {
     AppContext *appContext = context;
@@ -1132,6 +1128,6 @@ int main(int argc, char *argv[])
 {
     static AppContext appContext;
 
-    ZGAppHandlers appHandlers = {.launchedHandler = appLaunchedHandler, .terminatedHandler = appTerminatedHandler, .runLoopHandler = runLoopHandler, .pollEventHandler = pollEventHandler, .suspendedHandler = appSuspendedHandler};
+    ZGAppHandlers appHandlers = {.launchedHandler = appLaunchedHandler, .terminatedHandler = appTerminatedHandler, .runLoopHandler = runLoopHandler, .pollEventHandler = pollEventHandler};
     return ZGAppInit(argc, argv, &appHandlers, &appContext);
 }

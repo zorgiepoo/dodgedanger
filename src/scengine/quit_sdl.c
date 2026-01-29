@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2024 Mayur Pawashe
+ Copyright (c) 2019 Mayur Pawashe
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,20 @@
  SOFTWARE.
  */
 
-#pragma once
+#include <SDL3/SDL.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "quit.h"
+#include <stdlib.h>
 
-#include "platforms.h"
-#include "texture.h"
-
-void initFontFromFile(const char *filePath, int pointSize);
-
-#if !PLATFORM_LINUX
-void initFontWithName(const char *name, int pointSize);
-#endif
-
-TextureData createTextData(const char* string);
-
-#ifdef __cplusplus
+void ZGQuit(void)
+{
+	SDL_Quit();
+	exit(0);
 }
-#endif
+
+void ZGSendQuitEvent(void)
+{
+	SDL_Event event = { 0 };
+	event.type = SDL_EVENT_QUIT;
+	SDL_PushEvent(&event);
+}

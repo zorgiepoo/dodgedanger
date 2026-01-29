@@ -72,9 +72,7 @@ void ZGGetDrawableSize(ZGWindow* windowRef, int32_t* width, int32_t* height);
 
 void ZGGetWindowSize(ZGWindow *window, int32_t *width, int32_t *height);
 
-#if !PLATFORM_IOS
 void ZGSetWindowEventHandler(ZGWindow *window, void *context, void (*windowEventHandler)(ZGWindowEvent, void *));
-#endif
 
 #if PLATFORM_LINUX
 bool ZGWindowIsFullscreen(ZGWindow *window);
@@ -97,6 +95,8 @@ void ZGSetKeyboardEventHandler(ZGWindow *window, void *context, void (*keyboardE
 
 #if PLATFORM_LINUX
 void ZGPollWindowAndInputEvents(ZGWindow *window, const void *systemEvent);
+
+void ZGSetAcceptingTextInput(ZGWindow *window, bool acceptTextInput);
 #endif
 
 void *ZGWindowHandle(ZGWindow *window);
